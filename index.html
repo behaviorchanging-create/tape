@@ -586,9 +586,9 @@
     // readouts (always whole account)
     var equityNow = state.startingBalance + mAll.net;
     var ro = document.getElementById("ro-equity");
-    ro.textContent = "$"+equityNow.toLocaleString("en-US",{maximumFractionDigits:0});
+    ro.textContent = "$"+equityNow.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
     var roS = document.getElementById("ro-start");
-    roS.textContent = "$"+state.startingBalance.toLocaleString("en-US",{maximumFractionDigits:0})+" start";
+    roS.textContent = "$"+state.startingBalance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+" start";
     var ret = state.startingBalance>0 ? mAll.net/state.startingBalance*100 : 0;
     var roR = document.getElementById("ro-return");
     roR.textContent = (ret>0?"+":"")+ret.toFixed(2)+"%";
