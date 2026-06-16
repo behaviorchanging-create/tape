@@ -47,6 +47,7 @@
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
+    overflow-x:hidden;
   }
   .wrap{max-width:1180px;margin:0 auto;padding:0 24px 120px}
 
@@ -70,6 +71,9 @@
   .equity-readout .item{text-align:right}
   .equity-readout .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-bottom:3px}
   .equity-readout .val{font-family:var(--mono);font-weight:600;font-size:22px}
+  .equity-readout .start-cap{font-family:var(--mono);font-size:10px;color:var(--muted-2);margin-top:2px}
+  .gear{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:16px;line-height:1;transition:.15s;align-self:flex-end}
+  .gear:hover{color:var(--gold);border-color:var(--gold)}
   .pos{color:var(--profit)} .neg{color:var(--loss)} .flat{color:var(--muted)}
 
   /* ---------- Hero / equity ---------- */
@@ -127,13 +131,14 @@
 
   /* ---------- Layout columns ---------- */
   .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px;align-items:start}
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .grid>*{min-width:0}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-width:0}
   .panel-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--border-soft)}
   .panel-head h2{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.04em}
   .panel-head .meta{font-family:var(--mono);font-size:10px;color:var(--muted-2);letter-spacing:.08em;text-transform:uppercase}
 
   /* ---------- Trade table ---------- */
-  .tbl-scroll{max-height:520px;overflow:auto}
+  .tbl-scroll{max-height:520px;overflow:auto;-webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
   thead th{
     position:sticky;top:0;background:var(--surface);z-index:1;
@@ -241,12 +246,35 @@
     .grid{grid-template-columns:1fr}
   }
   @media(max-width:560px){
-    .stats{grid-template-columns:repeat(2,1fr)}
+    .wrap{padding:0 12px 120px}
+    header{padding:18px 14px 16px;padding-top:calc(18px + env(safe-area-inset-top));gap:12px}
+    .brand h1{font-size:24px}
+    .equity-readout{gap:16px;width:100%;align-items:flex-end}
+    .equity-readout .item{text-align:left}
+    .equity-readout .val{font-size:18px}
+    .gear{margin-left:auto}
+
+    .hero{padding:18px 16px;border-radius:14px}
+    .hero-pnl{font-size:34px}
+    svg.equity{height:170px}
+
+    .stats{grid-template-columns:repeat(2,1fr);gap:10px}
+    .stat{padding:12px 13px}
+    .stat .v{font-size:18px}
+
     .fgrid{grid-template-columns:1fr}
-    header{padding:20px 16px}
-    .wrap{padding:0 14px 120px}
-    .equity-readout{gap:18px}
+    .preview{gap:16px}
     .fab span.txt{display:none}
+    .fab{padding:15px 17px}
+
+    .donut-card{min-width:100%}
+    .panel-head{padding:13px 15px}
+    .side-block{padding:14px 15px}
+    .footnote{line-height:2}
+  }
+  @media(max-width:380px){
+    .stats{grid-template-columns:1fr 1fr;gap:8px}
+    .hero-pnl{font-size:30px}
   }
   @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -263,11 +291,13 @@
     <div class="item">
       <div class="lbl">Account equity</div>
       <div class="val" id="ro-equity">—</div>
+      <div class="start-cap" id="ro-start">— start</div>
     </div>
     <div class="item">
       <div class="lbl">Return</div>
       <div class="val" id="ro-return">—</div>
     </div>
+    <button class="gear" id="open-settings" aria-label="Set portfolio balance" title="Set portfolio balance">⚙</button>
   </div>
 </header>
 
@@ -406,6 +436,29 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- PORTFOLIO SETTINGS MODAL -->
+<div class="overlay" id="bal-overlay">
+  <div class="modal" style="max-width:430px">
+    <div class="modal-head">
+      <h2>Portfolio</h2>
+      <button class="close" id="bal-close" aria-label="Close">×</button>
+    </div>
+    <div class="form">
+      <div class="field">
+        <label>Starting balance — your account size</label>
+        <input id="f-balance" type="number" step="any" inputmode="decimal" placeholder="25000" />
+      </div>
+      <p style="font-family:var(--body);font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5">
+        This is the money in your account before trades. TAPE uses it to show your <b style="color:var(--text)">account equity</b> and <b style="color:var(--text)">% return</b>. Changing it doesn't affect any trade — only the totals.
+      </p>
+      <div class="form-foot">
+        <button class="btn btn-ghost" id="bal-cancel">Cancel</button>
+        <button class="btn btn-gold" id="bal-save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -453,6 +506,7 @@
     if(s){ try{ var o=JSON.parse(s); if(o.startingBalance) state.startingBalance=o.startingBalance; }catch(e){} }
   }
   async function saveTrades(){ await storeSet(TRADES_KEY, JSON.stringify(state.trades)); }
+  async function saveSettings(){ await storeSet(SETTINGS_KEY, JSON.stringify({startingBalance:state.startingBalance})); }
 
   // ---------- Math ----------
   function tradePnL(t){
@@ -533,6 +587,8 @@
     var equityNow = state.startingBalance + mAll.net;
     var ro = document.getElementById("ro-equity");
     ro.textContent = "$"+equityNow.toLocaleString("en-US",{maximumFractionDigits:0});
+    var roS = document.getElementById("ro-start");
+    roS.textContent = "$"+state.startingBalance.toLocaleString("en-US",{maximumFractionDigits:0})+" start";
     var ret = state.startingBalance>0 ? mAll.net/state.startingBalance*100 : 0;
     var roR = document.getElementById("ro-return");
     roR.textContent = (ret>0?"+":"")+ret.toFixed(2)+"%";
@@ -982,6 +1038,33 @@
   document.addEventListener("keydown",function(e){
     if(e.key==="Escape" && overlay.classList.contains("open")) closeModal();
     if((e.key==="Enter"&&(e.metaKey||e.ctrlKey)) && overlay.classList.contains("open")) saveTrade();
+  });
+
+  // ---------- Portfolio balance settings ----------
+  var balOverlay=document.getElementById("bal-overlay");
+  function openBal(){
+    document.getElementById("f-balance").value=state.startingBalance;
+    balOverlay.classList.add("open");
+    setTimeout(function(){document.getElementById("f-balance").focus();},50);
+  }
+  function closeBal(){ balOverlay.classList.remove("open"); }
+  async function saveBal(){
+    var v=parseFloat(document.getElementById("f-balance").value);
+    if(isNaN(v)||v<=0){ toast("Enter a balance greater than 0."); return; }
+    state.startingBalance=v;
+    await saveSettings();
+    closeBal();
+    render();
+    toast("Portfolio balance set.");
+  }
+  document.getElementById("open-settings").onclick=openBal;
+  document.getElementById("bal-close").onclick=closeBal;
+  document.getElementById("bal-cancel").onclick=closeBal;
+  document.getElementById("bal-save").onclick=saveBal;
+  balOverlay.addEventListener("click",function(e){ if(e.target===balOverlay) closeBal(); });
+  document.getElementById("f-balance").addEventListener("keydown",function(e){
+    if(e.key==="Enter") saveBal();
+    if(e.key==="Escape") closeBal();
   });
 
   // ---------- Sample / export / reset ----------
