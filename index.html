@@ -62,43 +62,59 @@
   }
   .brand{display:flex;align-items:baseline;gap:12px}
   .brand h1{
-    font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:.18em;
+    font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:.2em;
     background:linear-gradient(180deg,#fff,#c9cfdb);-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 24px rgba(240,180,41,.06);
   }
-  .brand .tag{font-family:var(--mono);font-size:11px;color:var(--muted-2);letter-spacing:.12em;text-transform:uppercase}
-  .tape-line{height:3px;width:40px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 10px);align-self:center}
+  .brand .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted-2);letter-spacing:.16em;text-transform:uppercase}
+  .tape-line{height:3px;width:42px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 10px);align-self:center;box-shadow:0 0 8px rgba(240,180,41,.3)}
   .equity-readout{display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap}
   .equity-readout .item{text-align:right}
   .equity-readout .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-bottom:3px}
   .equity-readout .val{font-family:var(--mono);font-weight:600;font-size:22px}
   .equity-readout .start-cap{font-family:var(--mono);font-size:10px;color:var(--muted-2);margin-top:2px}
-  .gear{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:16px;line-height:1;transition:.15s;align-self:flex-end}
-  .gear:hover{color:var(--gold);border-color:var(--gold)}
+  .gear{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);width:40px;height:40px;border-radius:11px;cursor:pointer;font-size:17px;line-height:1;transition:all .25s ease;align-self:flex-end}
+  .gear:hover{color:var(--gold);border-color:var(--gold);transform:rotate(45deg);box-shadow:0 4px 14px -4px rgba(240,180,41,.3)}
   .pos{color:var(--profit)} .neg{color:var(--loss)} .flat{color:var(--muted)}
 
   /* ---------- Hero / equity ---------- */
   .hero{
-    background:var(--surface);border:1px solid var(--border);border-radius:16px;
-    padding:24px 26px;margin-top:6px;position:relative;overflow:hidden;
+    background:linear-gradient(180deg, #161b29 0%, #131826 100%);
+    border:1px solid var(--border);border-radius:18px;
+    padding:26px 28px;margin-top:6px;position:relative;overflow:hidden;
+    box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 24px 48px -28px rgba(0,0,0,.6);
   }
-  .hero-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px}
-  .hero-head .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2)}
-  .hero-pnl{font-family:var(--mono);font-weight:700;font-size:clamp(34px,6vw,52px);line-height:1.05;letter-spacing:-.01em}
-  .hero-sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px}
-  .chart-area{margin-top:14px;position:relative}
+  .hero::before{
+    content:"";position:absolute;top:-120px;right:-80px;width:380px;height:380px;
+    background:radial-gradient(closest-side, rgba(240,180,41,.10), transparent 70%);
+    pointer-events:none;
+  }
+  .hero::after{
+    content:"";position:absolute;left:0;right:0;top:0;height:1px;
+    background:linear-gradient(90deg, transparent, rgba(240,180,41,.35), transparent);
+    pointer-events:none;
+  }
+  .hero-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px;position:relative}
+  .hero-head .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted-2);display:inline-flex;align-items:center;gap:8px}
+  .hero-head .eyebrow::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.25)}}
+  .hero-pnl{font-family:var(--mono);font-weight:700;font-size:clamp(34px,6vw,54px);line-height:1.05;letter-spacing:-.015em;margin-top:4px}
+  .hero-sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px;letter-spacing:.02em}
+  .chart-area{margin-top:16px;position:relative}
   svg.equity{display:block;width:100%;height:auto}
   .filters{display:flex;gap:6px;flex-wrap:wrap}
   .chip{
     font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);
     background:var(--surface-2);border:1px solid var(--border);border-radius:999px;
-    padding:5px 11px;cursor:pointer;transition:.15s;white-space:nowrap;
+    padding:6px 12px;cursor:pointer;transition:all .18s ease;white-space:nowrap;
   }
-  .chip:hover{color:var(--text);border-color:var(--muted-2)}
-  .chip.active{color:var(--bg);background:var(--gold);border-color:var(--gold);font-weight:600}
+  .chip:hover{color:var(--text);border-color:var(--gold);transform:translateY(-1px)}
+  .chip.active{color:#1a1405;background:var(--gold);border-color:var(--gold);font-weight:600;box-shadow:0 4px 14px -4px rgba(240,180,41,.45)}
 
   /* ---------- Stat strip ---------- */
   .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:16px}
-  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 15px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 15px;transition:all .2s ease;position:relative;overflow:hidden}
+  .stat:hover{transform:translateY(-2px);border-color:var(--muted-2);box-shadow:0 8px 24px -10px rgba(0,0,0,.4)}
   .stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-2);margin-bottom:7px}
   .stat .v{font-family:var(--mono);font-weight:600;font-size:21px}
   .stat .x{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:3px}
@@ -107,8 +123,9 @@
   .month-strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
   .month-strip::-webkit-scrollbar{height:6px}
   .month-strip::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-  .mcard{flex:0 0 auto;min-width:132px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;position:relative;overflow:hidden}
-  .mcard.cur{border-color:var(--gold)}
+  .mcard{flex:0 0 auto;min-width:138px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;transition:all .2s ease}
+  .mcard:hover{transform:translateY(-2px);border-color:var(--muted-2);box-shadow:0 8px 24px -10px rgba(0,0,0,.4)}
+  .mcard.cur{border-color:var(--gold);box-shadow:0 0 0 1px rgba(240,180,41,.2), 0 8px 24px -10px rgba(240,180,41,.15)}
   .mcard .rail{position:absolute;left:0;top:0;bottom:0;width:3px}
   .mcard .mo{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-2);margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;gap:8px}
   .mcard .mo .now{color:var(--gold);font-size:8px;letter-spacing:.1em}
@@ -132,8 +149,8 @@
   /* ---------- Layout columns ---------- */
   .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px;align-items:start}
   .grid>*{min-width:0}
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-width:0}
-  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--border-soft)}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-width:0;transition:border-color .2s ease}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border-soft);background:linear-gradient(180deg,rgba(255,255,255,.015),transparent)}
   .panel-head h2{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.04em}
   .panel-head .meta{font-family:var(--mono);font-size:10px;color:var(--muted-2);letter-spacing:.08em;text-transform:uppercase}
 
@@ -148,8 +165,9 @@
   thead th:first-child,thead th.l{text-align:left}
   tbody td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--border-soft);white-space:nowrap}
   tbody td:first-child,tbody td.l{text-align:left}
-  tbody tr{transition:background .12s}
+  tbody tr{transition:background .15s ease;position:relative}
   tbody tr:hover{background:var(--surface-2)}
+  tbody tr:hover td:first-child{box-shadow:inset 2px 0 0 var(--gold)}
   .sym{font-weight:600;color:var(--text)}
   .dir{font-size:9.5px;letter-spacing:.08em;padding:2px 6px;border-radius:4px;font-weight:600}
   .dir.long{color:var(--profit);background:var(--profit-dim)}
@@ -184,11 +202,12 @@
 
   /* ---------- Buttons ---------- */
   .btn{
-    font-family:var(--body);font-weight:600;font-size:13px;border-radius:9px;
-    padding:10px 18px;cursor:pointer;border:1px solid transparent;transition:.15s;
+    font-family:var(--body);font-weight:600;font-size:13px;border-radius:10px;
+    padding:11px 20px;cursor:pointer;border:1px solid transparent;transition:all .18s ease;
   }
-  .btn-gold{background:var(--gold);color:#1a1405;border-color:var(--gold)}
-  .btn-gold:hover{background:#ffc63d}
+  .btn-gold{background:linear-gradient(180deg,#f5be35,#e8a91e);color:#1a1405;border-color:var(--gold);box-shadow:0 4px 14px -4px rgba(240,180,41,.4)}
+  .btn-gold:hover{background:linear-gradient(180deg,#ffc63d,#f0b429);transform:translateY(-1px);box-shadow:0 6px 18px -4px rgba(240,180,41,.55)}
+  .btn-gold:active{transform:translateY(0)}
   .btn-ghost{background:transparent;color:var(--text);border-color:var(--border)}
   .btn-ghost:hover{border-color:var(--muted-2);background:var(--surface-2)}
 
@@ -197,22 +216,27 @@
     bottom:calc(28px + env(safe-area-inset-bottom));
     right:calc(28px + env(safe-area-inset-right));
     display:flex;align-items:center;gap:9px;
-    background:var(--gold);color:#1a1405;border:none;cursor:pointer;
+    background:linear-gradient(180deg,#f5be35,#e8a91e);color:#1a1405;border:none;cursor:pointer;
     font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.02em;
-    padding:14px 22px;border-radius:14px;box-shadow:0 10px 30px -8px rgba(240,180,41,.5);transition:.15s;
+    padding:15px 24px;border-radius:16px;
+    box-shadow:0 10px 30px -8px rgba(240,180,41,.55), 0 0 0 1px rgba(240,180,41,.2);
+    transition:all .2s ease;
   }
-  .fab:hover{transform:translateY(-2px);box-shadow:0 16px 36px -8px rgba(240,180,41,.55)}
-  .fab .plus{font-family:var(--mono);font-size:18px;line-height:1}
+  .fab:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 18px 40px -10px rgba(240,180,41,.65), 0 0 0 1px rgba(240,180,41,.35)}
+  .fab:active{transform:translateY(-1px) scale(1)}
+  .fab .plus{font-family:var(--mono);font-size:18px;line-height:1;font-weight:700}
 
   /* ---------- Modal ---------- */
-  .overlay{position:fixed;inset:0;background:rgba(5,7,12,.72);backdrop-filter:blur(4px);z-index:50;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
-  .overlay.open{display:flex}
-  .modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;max-width:620px;overflow:hidden;animation:pop .2s ease}
-  @keyframes pop{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
-  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border-soft)}
+  .overlay{position:fixed;inset:0;background:rgba(5,7,12,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:50;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .overlay.open{display:flex;animation:fadein .18s ease}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  .modal{background:linear-gradient(180deg,#161b29,#131826);border:1px solid var(--border);border-radius:20px;width:100%;max-width:620px;overflow:hidden;animation:pop .25s cubic-bezier(.16,1,.3,1);box-shadow:0 40px 80px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04)}
+  @keyframes pop{from{transform:translateY(20px) scale(.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border-soft);position:relative}
+  .modal-head::after{content:"";position:absolute;left:24px;right:24px;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(240,180,41,.25),transparent)}
   .modal-head h2{font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.02em}
-  .modal-head .close{background:none;border:none;color:var(--muted-2);font-size:22px;cursor:pointer;line-height:1;transition:.15s}
-  .modal-head .close:hover{color:var(--text)}
+  .modal-head .close{background:none;border:none;color:var(--muted-2);font-size:24px;cursor:pointer;line-height:1;transition:all .15s;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .modal-head .close:hover{color:var(--text);background:var(--surface-2)}
   .form{padding:22px 24px}
   .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
   .field{display:flex;flex-direction:column;gap:6px}
@@ -220,13 +244,15 @@
   .field label{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted-2)}
   .field input,.field select,.field textarea{
     font-family:var(--mono);font-size:13.5px;color:var(--text);
-    background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 12px;outline:none;transition:.15s;
+    background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 13px;outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
   }
   .field textarea{font-family:var(--body);resize:vertical;min-height:62px}
-  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,180,41,.12)}
   .field input::placeholder{color:var(--muted-2)}
-  .seg{display:flex;gap:0;border:1px solid var(--border);border-radius:9px;overflow:hidden}
-  .seg button{flex:1;background:var(--bg);border:none;color:var(--muted);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;padding:10px;cursor:pointer;transition:.15s}
+  .seg{display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .seg button{flex:1;background:var(--bg);border:none;color:var(--muted);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;padding:11px;cursor:pointer;transition:all .18s ease}
+  .seg button:hover{color:var(--text)}
   .seg button.on-long{background:var(--profit-dim);color:var(--profit)}
   .seg button.on-short{background:var(--loss-dim);color:var(--loss)}
   .preview{display:flex;gap:22px;margin:18px 0 4px;padding:14px 16px;background:var(--bg);border:1px solid var(--border-soft);border-radius:10px;flex-wrap:wrap}
@@ -239,6 +265,8 @@
   .btn-mini{flex:0 0 auto;font-family:var(--body);font-weight:600;font-size:12px;color:#1a1405;background:var(--gold);border:none;border-radius:8px;padding:8px 13px;cursor:pointer;transition:.15s}
   .btn-mini:hover{background:#ffc63d}
   .btn-mini:disabled{opacity:.4;cursor:not-allowed}
+  .type-note{font-family:var(--mono);font-size:10.5px;color:var(--muted-2);margin-top:6px;letter-spacing:.04em;line-height:1.5}
+  .type-note b{color:var(--gold);font-weight:600}
   .form-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
 
   .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12.5px;padding:11px 18px;border-radius:10px;z-index:60;opacity:0;transition:.25s;pointer-events:none}
@@ -453,6 +481,7 @@
         <div class="p"><div class="pk">P&L</div><div class="pv" id="pv-pnl">—</div></div>
         <div class="p"><div class="pk">R-multiple</div><div class="pv" id="pv-r">—</div></div>
         <div class="p"><div class="pk">Risk</div><div class="pv" id="pv-risk">—</div></div>
+        <div class="p"><div class="pk">Margin</div><div class="pv" id="pv-margin">—</div></div>
       </div>
 
       <div class="form-foot">
@@ -467,39 +496,40 @@
 
 <!-- PORTFOLIO SETTINGS MODAL -->
 <div class="overlay" id="bal-overlay">
-  <div class="modal" style="max-width:480px">
+  <div class="modal" style="max-width:460px">
     <div class="modal-head">
-      <h2>Account profile</h2>
+      <h2>Account profile · XM</h2>
       <button class="close" id="bal-close" aria-label="Close">×</button>
     </div>
     <div class="form">
       <div class="fgrid">
         <div class="field full">
-          <label>Account name</label>
-          <input id="p-name" placeholder="My XM Cent account" autocomplete="off" />
-        </div>
-        <div class="field full">
           <label>Account type</label>
           <div class="seg" id="p-type">
-            <button type="button" data-type="cent" class="on-long">CENT</button>
-            <button type="button" data-type="standard">STANDARD</button>
+            <button type="button" data-type="standard" class="on-long">STANDARD</button>
+            <button type="button" data-type="micro">MICRO</button>
           </div>
+          <div class="type-note" id="p-type-note"></div>
         </div>
         <div class="field">
-          <label>Starting balance ($)</label>
+          <label>Leverage</label>
+          <select id="p-leverage">
+            <option value="30">1:30</option>
+            <option value="100">1:100</option>
+            <option value="200">1:200</option>
+            <option value="400">1:400</option>
+            <option value="500">1:500</option>
+            <option value="888">1:888</option>
+            <option value="1000" selected>1:1000</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Balance ($)</label>
           <input id="f-balance" type="number" step="any" inputmode="decimal" placeholder="30.62" />
-        </div>
-        <div class="field">
-          <label>Risk per trade (%)</label>
-          <input id="p-risk" type="number" step="any" inputmode="decimal" placeholder="1" />
-        </div>
-        <div class="field full">
-          <label>Pip value per 1.00 lot — Standard ($)</label>
-          <input id="p-pipval" type="number" step="any" inputmode="decimal" placeholder="10" />
         </div>
       </div>
       <p style="font-family:var(--body);font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.55">
-        <b style="color:var(--text)">Cent</b> accounts use 1⁄100 of the standard pip value automatically (so $10 → $0.10 per lot). This profile fills in defaults when you log a trade and powers the lot-size calculator. Balance &amp; type drive your equity, % return and risk per trade.
+        TAPE follows XM's specs: <b style="color:var(--text)">Standard</b> = 100,000 units/lot (~$10/pip per 1.00 lot), <b style="color:var(--text)">Micro</b> = 1,000 units/lot (~$0.10/pip per 1.00 lot). Leverage drives the margin estimate when you log a trade.
       </p>
       <div class="form-foot">
         <button class="btn btn-ghost" id="bal-cancel">Cancel</button>
@@ -516,9 +546,12 @@
   // ---------- State ----------
   var TRADES_KEY = "tape:trades:v1";
   var SETTINGS_KEY = "tape:settings:v1";
+  // XM contract sizes
+  var XM_CONTRACT_STANDARD = 100000; // 1 lot = 100,000 units
+  var XM_CONTRACT_MICRO    = 1000;   // 1 lot = 1,000 units
   var state = {
-    trades:[], filter:"all", editingId:null, dir:"long", profileType:"cent",
-    startingBalance:1000, accountType:"cent", riskPct:1, pipValueStd:10, accountName:""
+    trades:[], filter:"all", editingId:null, dir:"long", profileType:"standard",
+    startingBalance:1000, accountType:"standard", leverage:1000, riskPct:1
   };
 
   // ---------- Storage helpers ----------
@@ -559,30 +592,52 @@
     if(s){ try{
       var o=JSON.parse(s);
       if(o.startingBalance!=null) state.startingBalance=o.startingBalance;
-      if(o.accountType) state.accountType=o.accountType;
+      if(o.accountType) state.accountType=(o.accountType==="cent"?"micro":o.accountType); // migrate old "cent" -> micro
+      if(o.leverage!=null) state.leverage=o.leverage;
       if(o.riskPct!=null) state.riskPct=o.riskPct;
-      if(o.pipValueStd!=null) state.pipValueStd=o.pipValueStd;
-      if(o.accountName!=null) state.accountName=o.accountName;
     }catch(e){} }
   }
   async function saveTrades(){ await storeSet(TRADES_KEY, JSON.stringify(state.trades)); }
   async function saveSettings(){ await storeSet(SETTINGS_KEY, JSON.stringify({
     startingBalance:state.startingBalance, accountType:state.accountType,
-    riskPct:state.riskPct, pipValueStd:state.pipValueStd, accountName:state.accountName
+    leverage:state.leverage, riskPct:state.riskPct
   })); }
 
-  // ---------- Forex helpers ----------
-  // Effective $ value of one pip per 1.00 lot, adjusted for account type (cent = 1/100 of standard)
-  function effPipValue(){ return state.accountType==="cent" ? state.pipValueStd/100 : state.pipValueStd; }
+  // ---------- XM-spec helpers ----------
+  // Contract size based on XM account type and symbol.
+  // Forex pairs follow type (Standard 100,000 / Micro 1,000).
+  // XAU (gold) on XM = 100 oz per lot for Standard, 1 oz for Micro (1/100 ratio held).
+  function contractSize(type, symbol){
+    type = type || state.accountType;
+    var s = (symbol||"").toUpperCase();
+    var isGold = s.indexOf("XAU")>=0 || s.indexOf("GOLD")>=0;
+    if(isGold) return type==="micro" ? 1 : 100;
+    return type==="micro" ? XM_CONTRACT_MICRO : XM_CONTRACT_STANDARD;
+  }
+  // Pip value per 1.00 lot for USD-quoted pairs.
+  // Note: JPY-quoted pairs (e.g. USDJPY) need division by current USDJPY rate for exact $;
+  // the value below is an approximation — override in the form's "Pip value" field if needed.
+  function pipValueFor(symbol, type){
+    var ps = inferPipSize(symbol);
+    var cs = contractSize(type, symbol);
+    var raw = ps * cs;
+    // For JPY-quoted pairs, raw is in JPY; approximate ÷ 150 to get USD.
+    var s = (symbol||"").toUpperCase();
+    if(s.length===6 && s.slice(3)==="JPY") raw = raw / 150;
+    return raw;
+  }
+  function effPipValue(){ return pipValueFor(null, state.accountType); }
   function inferPipSize(symbol){
     var s=(symbol||"").toUpperCase();
     if(s.indexOf("JPY")>=0) return 0.01;
     if(s.indexOf("XAU")>=0 || s.indexOf("GOLD")>=0) return 0.1;
     return 0.0001;
   }
-  // resolve a trade's pip size / pip value, using stored values or sensible fallbacks
   function tPipSize(t){ return (t.pipSize!=null && !isNaN(t.pipSize) && t.pipSize>0) ? t.pipSize : inferPipSize(t.symbol); }
-  function tPipVal(t){ return (t.pipValue!=null && !isNaN(t.pipValue) && t.pipValue>0) ? t.pipValue : effPipValue(); }
+  function tPipVal(t){
+    if(t.pipValue!=null && !isNaN(t.pipValue) && t.pipValue>0) return t.pipValue;
+    return pipValueFor(t.symbol, t.accountType || state.accountType);
+  }
 
   // ---------- Math (forex) ----------
   // pips = price move in pips, signed by direction
@@ -674,7 +729,8 @@
     var ro = document.getElementById("ro-equity");
     ro.textContent = "$"+equityNow.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
     var roS = document.getElementById("ro-start");
-    roS.textContent = "$"+state.startingBalance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+" start · "+(state.accountType==="cent"?"Cent":"Standard");
+    var typeLabel = state.accountType==="micro" ? "Micro" : "Standard";
+    roS.textContent = "$"+state.startingBalance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+" · "+typeLabel+" · 1:"+state.leverage;
     var ret = state.startingBalance>0 ? mAll.net/state.startingBalance*100 : 0;
     var roR = document.getElementById("ro-return");
     roR.textContent = (ret>0?"+":"")+ret.toFixed(2)+"%";
@@ -1045,6 +1101,7 @@
       pipSize:num("f-pipsize"),
       pipValue:num("f-pipval"),
       swap:num("f-swap")||0,
+      accountType:state.accountType,
       date:gv("f-date")||new Date().toISOString().slice(0,10),
       setup:(gv("f-setup")||"").trim(),
       notes:(gv("f-notes")||"").trim()
@@ -1053,11 +1110,13 @@
   function updatePreview(){
     var f=readForm();
     var pipsEl=document.getElementById("pv-pips"), pnlEl=document.getElementById("pv-pnl"),
-        rEl=document.getElementById("pv-r"), riskEl=document.getElementById("pv-risk");
+        rEl=document.getElementById("pv-r"), riskEl=document.getElementById("pv-risk"),
+        marginEl=document.getElementById("pv-margin");
     var ok = f.entry!=null && f.exit!=null && f.size!=null && f.size>0;
     if(!ok){
       pipsEl.textContent="—";pnlEl.textContent="—";pnlEl.className="pv";
       rEl.textContent="—";rEl.className="pv";riskEl.textContent="—";
+      marginEl.textContent="—";marginEl.className="pv";
     }else{
       var pips=tradePips(f), p=tradePnL(f), risk=tradeRisk(f), r=tradeR(f);
       pipsEl.textContent = pips==null?"—":(pips>0?"+":"")+pips.toFixed(1);
@@ -1065,6 +1124,12 @@
       pnlEl.textContent=fmtMoney(p,true); pnlEl.className="pv "+cls(p);
       rEl.textContent = r==null?"—":(r>0?"+":"")+r.toFixed(2)+"R"; rEl.className="pv "+(r==null?"":cls(r));
       riskEl.textContent = risk==null?"—":fmtMoney(risk);
+      // Margin estimate: (lots × contract × entry) / leverage
+      var lev=state.leverage||1000, csz=contractSize(f.accountType||state.accountType, f.symbol);
+      var margin = (f.size * csz * f.entry) / lev;
+      marginEl.textContent = fmtMoney(margin);
+      // warn if margin exceeds balance
+      marginEl.className = "pv "+(margin>state.startingBalance ? "neg" : "");
     }
     updateLotHelper(f);
   }
@@ -1091,9 +1156,12 @@
   document.getElementById("lh-use").onclick=function(){
     if(suggestedLot!=null){ document.getElementById("f-size").value=suggestedLot; updatePreview(); }
   };
-  // auto-pick pip size when symbol changes
+  // auto-pick pip size & XM-derived pip value when symbol changes
   document.getElementById("f-symbol").addEventListener("input",function(){
-    document.getElementById("f-pipsize").value=String(inferPipSize(gv("f-symbol")));
+    var sym=gv("f-symbol");
+    var ps=inferPipSize(sym);
+    document.getElementById("f-pipsize").value=String(ps);
+    document.getElementById("f-pipval").value=pipValueFor(sym,state.accountType).toFixed(4);
   });
   ["f-symbol","f-entry","f-exit","f-stop","f-size","f-pipsize","f-pipval","f-swap","f-date","f-setup"].forEach(function(id){
     document.getElementById(id).addEventListener("input",updatePreview);
@@ -1106,11 +1174,11 @@
     document.getElementById("save-btn").textContent="Save trade";
     ["f-symbol","f-entry","f-exit","f-stop","f-size","f-swap","f-setup","f-notes"].forEach(function(id){document.getElementById(id).value="";});
     document.getElementById("f-pipsize").value="0.0001";
-    document.getElementById("f-pipval").value=effPipValue();
+    document.getElementById("f-pipval").value=pipValueFor(null,state.accountType).toFixed(4);
     document.getElementById("f-date").value=new Date().toISOString().slice(0,10);
     setDir("long");
     updatePreview();
-    overlay.classList.add("open");
+    openOverlay(overlay);
     setTimeout(function(){document.getElementById("f-symbol").focus();},50);
   }
   function openEdit(id){
@@ -1132,9 +1200,38 @@
     document.getElementById("f-notes").value=t.notes||"";
     setDir(t.dir);
     updatePreview();
-    overlay.classList.add("open");
+    openOverlay(overlay);
   }
-  function closeModal(){ overlay.classList.remove("open"); }
+  function closeModal(){ closeOverlay(overlay); }
+
+  // ---------- iOS-safe body scroll lock ----------
+  // When a modal opens, freeze the page beneath so tapping/scrolling inside the modal
+  // doesn't bleed through to the page. position:fixed is the only approach that holds on iOS Safari.
+  var _lockCount = 0, _savedScroll = 0;
+  function openOverlay(el){
+    if(_lockCount===0){
+      _savedScroll = window.scrollY || document.documentElement.scrollTop || 0;
+      document.body.style.position = "fixed";
+      document.body.style.top = (-_savedScroll)+"px";
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+    }
+    _lockCount++;
+    el.classList.add("open");
+  }
+  function closeOverlay(el){
+    el.classList.remove("open");
+    _lockCount = Math.max(0, _lockCount-1);
+    if(_lockCount===0){
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      window.scrollTo(0, _savedScroll);
+    }
+  }
 
   async function saveTrade(){
     var f=readForm();
@@ -1171,38 +1268,38 @@
     if((e.key==="Enter"&&(e.metaKey||e.ctrlKey)) && overlay.classList.contains("open")) saveTrade();
   });
 
-  // ---------- Account profile ----------
+  // ---------- Account profile (XM-based) ----------
   var balOverlay=document.getElementById("bal-overlay");
+  function typeNoteText(t){
+    if(t==="standard") return "<b>Standard</b> · 100,000 units / lot · ~$10 per pip per 1.00 lot";
+    return "<b>Micro</b> · 1,000 units / lot · ~$0.10 per pip per 1.00 lot";
+  }
   function setProfileType(t){
     state.profileType=t;
     document.querySelectorAll("#p-type button").forEach(function(b){
       b.classList.remove("on-long","on-short");
       if(b.getAttribute("data-type")===t) b.classList.add("on-long");
     });
+    document.getElementById("p-type-note").innerHTML = typeNoteText(t);
   }
   document.querySelectorAll("#p-type button").forEach(function(b){
     b.onclick=function(){ setProfileType(b.getAttribute("data-type")); };
   });
   function openBal(){
-    document.getElementById("p-name").value=state.accountName||"";
     document.getElementById("f-balance").value=state.startingBalance;
-    document.getElementById("p-risk").value=state.riskPct;
-    document.getElementById("p-pipval").value=state.pipValueStd;
-    setProfileType(state.accountType||"cent");
-    balOverlay.classList.add("open");
-    setTimeout(function(){document.getElementById("p-name").focus();},50);
+    document.getElementById("p-leverage").value=String(state.leverage||1000);
+    setProfileType(state.accountType==="micro"?"micro":"standard");
+    openOverlay(balOverlay);
+    setTimeout(function(){document.getElementById("f-balance").focus();},50);
   }
-  function closeBal(){ balOverlay.classList.remove("open"); }
+  function closeBal(){ closeOverlay(balOverlay); }
   async function saveBal(){
     var v=parseFloat(document.getElementById("f-balance").value);
     if(isNaN(v)||v<=0){ toast("Enter a balance greater than 0."); return; }
-    var rk=parseFloat(document.getElementById("p-risk").value);
-    var pv=parseFloat(document.getElementById("p-pipval").value);
+    var lev=parseInt(document.getElementById("p-leverage").value,10);
     state.startingBalance=v;
     state.accountType=state.profileType;
-    state.riskPct=(isNaN(rk)||rk<=0)?1:rk;
-    state.pipValueStd=(isNaN(pv)||pv<=0)?10:pv;
-    state.accountName=(document.getElementById("p-name").value||"").trim();
+    state.leverage=isNaN(lev)?1000:lev;
     await saveSettings();
     closeBal();
     render();
@@ -1272,10 +1369,9 @@
   // Full backup as JSON — keep this file safe and you can never lose your journal
   function backupJSON(){
     if(!state.trades.length){ toast("Nothing to back up yet."); return; }
-    var payload={ app:"TAPE", version:2, exportedAt:new Date().toISOString(),
+    var payload={ app:"TAPE", version:3, exportedAt:new Date().toISOString(),
       startingBalance:state.startingBalance, accountType:state.accountType,
-      riskPct:state.riskPct, pipValueStd:state.pipValueStd, accountName:state.accountName,
-      trades:state.trades };
+      leverage:state.leverage, riskPct:state.riskPct, trades:state.trades };
     var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     var url=URL.createObjectURL(blob);
     var a=document.createElement("a");
@@ -1297,10 +1393,9 @@
           return t;
         });
         if(data.startingBalance!=null) state.startingBalance=data.startingBalance;
-        if(data.accountType) state.accountType=data.accountType;
+        if(data.accountType) state.accountType=(data.accountType==="cent"?"micro":data.accountType);
+        if(data.leverage!=null) state.leverage=data.leverage;
         if(data.riskPct!=null) state.riskPct=data.riskPct;
-        if(data.pipValueStd!=null) state.pipValueStd=data.pipValueStd;
-        if(data.accountName!=null) state.accountName=data.accountName;
         state.filter="all";
         await saveTrades();
         await saveSettings();
