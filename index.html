@@ -268,6 +268,19 @@
   .btn-mini:disabled{opacity:.4;cursor:not-allowed}
   .type-note{font-family:var(--mono);font-size:10.5px;color:var(--muted-2);margin-top:6px;letter-spacing:.04em;line-height:1.5}
   .type-note b{color:var(--gold);font-weight:600}
+
+  .cloud-section{margin-top:16px;border:1px solid var(--border);border-radius:11px;background:var(--bg);overflow:hidden}
+  .cloud-section summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;cursor:pointer;font-family:var(--body);font-weight:500;font-size:13px;color:var(--text);user-select:none}
+  .cloud-section summary::-webkit-details-marker{display:none}
+  .cloud-section summary::after{content:"▾";font-family:var(--mono);color:var(--muted-2);font-size:11px;transition:transform .2s ease;margin-left:auto}
+  .cloud-section[open] summary::after{transform:rotate(180deg)}
+  .cloud-pill{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted-2)}
+  .cloud-pill.synced{background:var(--profit-dim);color:var(--profit)}
+  .cloud-pill.syncing{background:var(--gold-soft);color:var(--gold)}
+  .cloud-pill.error{background:var(--loss-dim);color:var(--loss)}
+  .cloud-body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--border-soft)}
+  .cloud-note{font-family:var(--body);font-size:12px;color:var(--muted);line-height:1.5;margin:12px 0 4px}
+
   .form-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
 
   .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12.5px;padding:11px 18px;border-radius:10px;z-index:60;opacity:0;transition:.25s;pointer-events:none}
@@ -536,6 +549,30 @@
       <p style="font-family:var(--body);font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.55">
         TAPE follows XM's specs: <b style="color:var(--text)">Standard</b> = 100,000 units/lot (~$10/pip per 1.00 lot), <b style="color:var(--text)">Micro</b> = 1,000 units/lot (~$0.10/pip per 1.00 lot). Leverage drives the margin estimate when you log a trade.
       </p>
+
+      <details class="cloud-section" id="cloud-section">
+        <summary>
+          <span>☁ Cloud sync · Supabase</span>
+          <span class="cloud-pill" id="cloud-pill">off</span>
+        </summary>
+        <div class="cloud-body">
+          <p class="cloud-note">Sync your journal across devices. Data is saved to your own Supabase project — no one else can read it without your URL + key.</p>
+          <div class="field">
+            <label>Supabase project URL</label>
+            <input id="c-url" type="text" inputmode="url" placeholder="https://xxxxx.supabase.co" autocomplete="off" autocapitalize="off" spellcheck="false" />
+          </div>
+          <div class="field">
+            <label>API key (publishable or anon)</label>
+            <input id="c-key" type="password" placeholder="sb_publishable_... or eyJhbGciOi..." autocomplete="off" autocapitalize="off" spellcheck="false" />
+          </div>
+          <div class="field">
+            <label>Journal ID — any name you pick, like a label</label>
+            <input id="c-jid" type="text" placeholder="my-tape" autocomplete="off" autocapitalize="off" spellcheck="false" />
+          </div>
+          <button type="button" class="btn-mini" id="c-test" style="margin-top:4px">Test connection</button>
+        </div>
+      </details>
+
       <div class="form-foot">
         <button class="btn btn-ghost" id="bal-cancel">Cancel</button>
         <button class="btn btn-gold" id="bal-save">Save profile</button>
@@ -556,7 +593,9 @@
   var XM_CONTRACT_MICRO    = 1000;   // 1 lot = 1,000 units
   var state = {
     trades:[], filter:"all", editingId:null, dir:"long", profileType:"standard",
-    startingBalance:1000, accountType:"standard", leverage:1000, riskPct:1
+    startingBalance:1000, accountType:"standard", leverage:1000, riskPct:1,
+    cloudUrl:"", cloudKey:"", cloudJournalId:"",
+    localUpdatedAt:null, cloudStatus:"off", cloudLastSync:null
   };
 
   // ---------- Storage helpers ----------
@@ -597,16 +636,128 @@
     if(s){ try{
       var o=JSON.parse(s);
       if(o.startingBalance!=null) state.startingBalance=o.startingBalance;
-      if(o.accountType) state.accountType=(o.accountType==="cent"?"micro":o.accountType); // migrate old "cent" -> micro
+      if(o.accountType) state.accountType=(o.accountType==="cent"?"micro":o.accountType);
       if(o.leverage!=null) state.leverage=o.leverage;
       if(o.riskPct!=null) state.riskPct=o.riskPct;
+      if(o.cloudUrl!=null) state.cloudUrl=o.cloudUrl;
+      if(o.cloudKey!=null) state.cloudKey=o.cloudKey;
+      if(o.cloudJournalId!=null) state.cloudJournalId=o.cloudJournalId;
+      if(o.localUpdatedAt!=null) state.localUpdatedAt=o.localUpdatedAt;
     }catch(e){} }
   }
-  async function saveTrades(){ await storeSet(TRADES_KEY, JSON.stringify(state.trades)); }
+  async function saveTrades(){
+    state.localUpdatedAt = new Date().toISOString();
+    await storeSet(TRADES_KEY, JSON.stringify(state.trades));
+    await saveSettings(); // persist localUpdatedAt
+    cloudPushDeferred();
+  }
   async function saveSettings(){ await storeSet(SETTINGS_KEY, JSON.stringify({
     startingBalance:state.startingBalance, accountType:state.accountType,
-    leverage:state.leverage, riskPct:state.riskPct
+    leverage:state.leverage, riskPct:state.riskPct,
+    cloudUrl:state.cloudUrl, cloudKey:state.cloudKey, cloudJournalId:state.cloudJournalId,
+    localUpdatedAt:state.localUpdatedAt
   })); }
+
+  // ---------- Cloud sync (Supabase REST API) ----------
+  function cloudConfigured(){ return !!(state.cloudUrl && state.cloudKey && state.cloudJournalId); }
+  function cloudHeaders(){
+    return {
+      "apikey": state.cloudKey,
+      "Authorization": "Bearer "+state.cloudKey,
+      "Content-Type": "application/json"
+    };
+  }
+  function cloudUrlClean(){
+    // strip trailing slash
+    return (state.cloudUrl||"").replace(/\/+$/,"");
+  }
+  function setCloudStatus(s){ state.cloudStatus=s; updateStoreNote(); }
+
+  async function cloudPull(){
+    if(!cloudConfigured()) return null;
+    setCloudStatus("syncing");
+    try{
+      var url = cloudUrlClean()+"/rest/v1/tape_journals?id=eq."+encodeURIComponent(state.cloudJournalId)+"&select=data,updated_at";
+      var r = await fetch(url,{headers:cloudHeaders()});
+      if(!r.ok){ setCloudStatus("error"); return {error:"HTTP "+r.status}; }
+      var rows = await r.json();
+      setCloudStatus(state.localUpdatedAt?"synced":"synced");
+      return rows.length ? rows[0] : null;
+    }catch(e){ setCloudStatus("error"); return {error:e.message}; }
+  }
+  async function cloudPush(){
+    if(!cloudConfigured()) return;
+    setCloudStatus("syncing");
+    try{
+      var payload = {
+        id: state.cloudJournalId,
+        data: {
+          trades: state.trades,
+          settings: {
+            startingBalance:state.startingBalance, accountType:state.accountType,
+            leverage:state.leverage, riskPct:state.riskPct
+          }
+        },
+        updated_at: state.localUpdatedAt || new Date().toISOString()
+      };
+      var url = cloudUrlClean()+"/rest/v1/tape_journals";
+      var r = await fetch(url,{
+        method:"POST",
+        headers:Object.assign({"Prefer":"resolution=merge-duplicates,return=minimal"}, cloudHeaders()),
+        body:JSON.stringify(payload)
+      });
+      if(!r.ok){ setCloudStatus("error"); return false; }
+      state.cloudLastSync = new Date().toISOString();
+      setCloudStatus("synced");
+      return true;
+    }catch(e){ setCloudStatus("error"); return false; }
+  }
+  // Debounced push — avoid hammering the API on rapid edits
+  var _cloudPushTimer=null;
+  function cloudPushDeferred(){
+    if(!cloudConfigured()) return;
+    if(_cloudPushTimer) clearTimeout(_cloudPushTimer);
+    _cloudPushTimer = setTimeout(function(){ cloudPush(); }, 800);
+  }
+  // Pull on boot; if cloud newer (or local empty), adopt cloud
+  async function cloudSyncOnBoot(){
+    if(!cloudConfigured()) return;
+    var row = await cloudPull();
+    if(!row || row.error) return;
+    var cloudTs = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+    var localTs = state.localUpdatedAt ? new Date(state.localUpdatedAt).getTime() : 0;
+    if(cloudTs > localTs){
+      var d = row.data || {};
+      if(Array.isArray(d.trades)) state.trades = d.trades;
+      if(d.settings){
+        var s=d.settings;
+        if(s.startingBalance!=null) state.startingBalance=s.startingBalance;
+        if(s.accountType) state.accountType=s.accountType;
+        if(s.leverage!=null) state.leverage=s.leverage;
+        if(s.riskPct!=null) state.riskPct=s.riskPct;
+      }
+      state.localUpdatedAt = row.updated_at;
+      await storeSet(TRADES_KEY, JSON.stringify(state.trades));
+      await saveSettings();
+      render();
+      toast("Synced "+state.trades.length+" trades from cloud.");
+    } else if(localTs > cloudTs){
+      // local is ahead — push it up
+      cloudPush();
+    }
+  }
+  async function cloudTest(){
+    if(!cloudConfigured()){ toast("Fill in URL, key, and journal ID first."); return; }
+    setCloudStatus("syncing");
+    var row = await cloudPull();
+    if(row && row.error){ toast("Couldn't reach Supabase ("+row.error+"). Check URL/key/table."); return; }
+    if(row){
+      var n=(row.data&&Array.isArray(row.data.trades))?row.data.trades.length:0;
+      toast("Connected · "+n+" trades in cloud");
+    } else {
+      toast("Connected · no data yet (saves will push automatically)");
+    }
+  }
 
   // ---------- XM-spec helpers ----------
   // Contract size based on XM account type and symbol.
@@ -1293,7 +1444,12 @@
   function openBal(){
     document.getElementById("f-balance").value=state.startingBalance;
     document.getElementById("p-leverage").value=String(state.leverage||1000);
+    document.getElementById("c-url").value=state.cloudUrl||"";
+    document.getElementById("c-key").value=state.cloudKey||"";
+    document.getElementById("c-jid").value=state.cloudJournalId||"";
+    document.getElementById("cloud-section").open = cloudConfigured();
     setProfileType(state.accountType==="micro"?"micro":"standard");
+    refreshCloudPill();
     openOverlay(balOverlay);
     setTimeout(function(){document.getElementById("f-balance").focus();},50);
   }
@@ -1305,15 +1461,42 @@
     state.startingBalance=v;
     state.accountType=state.profileType;
     state.leverage=isNaN(lev)?1000:lev;
+    state.cloudUrl=(document.getElementById("c-url").value||"").trim();
+    state.cloudKey=(document.getElementById("c-key").value||"").trim();
+    state.cloudJournalId=(document.getElementById("c-jid").value||"").trim();
+    state.localUpdatedAt = new Date().toISOString();
     await saveSettings();
     closeBal();
     render();
     toast("Profile saved.");
+    if(cloudConfigured()) cloudPush();
+    updateStoreNote();
+  }
+  function refreshCloudPill(){
+    var pill=document.getElementById("cloud-pill");
+    if(!pill) return;
+    pill.className="cloud-pill";
+    if(!cloudConfigured()){ pill.textContent="off"; return; }
+    if(state.cloudStatus==="syncing"){ pill.classList.add("syncing"); pill.textContent="syncing"; }
+    else if(state.cloudStatus==="error"){ pill.classList.add("error"); pill.textContent="error"; }
+    else { pill.classList.add("synced"); pill.textContent="synced"; }
   }
   document.getElementById("open-settings").onclick=openBal;
   document.getElementById("bal-close").onclick=closeBal;
   document.getElementById("bal-cancel").onclick=closeBal;
   document.getElementById("bal-save").onclick=saveBal;
+  document.getElementById("c-test").onclick=async function(){
+    // read draft values from the form for the test (don't require save first)
+    var u=document.getElementById("c-url").value.trim();
+    var k=document.getElementById("c-key").value.trim();
+    var j=document.getElementById("c-jid").value.trim();
+    if(!u||!k||!j){ toast("Fill in URL, key, and journal ID first."); return; }
+    var prev={url:state.cloudUrl,key:state.cloudKey,jid:state.cloudJournalId};
+    state.cloudUrl=u; state.cloudKey=k; state.cloudJournalId=j;
+    await cloudTest();
+    refreshCloudPill();
+    state.cloudUrl=prev.url; state.cloudKey=prev.key; state.cloudJournalId=prev.jid;
+  };
   balOverlay.addEventListener("click",function(e){ if(e.target===balOverlay) closeBal(); });
   document.addEventListener("keydown",function(e){
     if(e.key==="Escape" && balOverlay.classList.contains("open")) closeBal();
@@ -1428,16 +1611,28 @@
     clearTimeout(toastT); toastT=setTimeout(function(){el.classList.remove("show");},2200);
   }
 
-  // ---------- boot ----------
-  (async function(){
-    await loadAll();
-    render();
+  function updateStoreNote(){
     var note=document.getElementById("store-note");
-    if(note){
+    if(!note) return;
+    if(cloudConfigured()){
+      if(state.cloudStatus==="syncing") note.innerHTML='☁ <span style="color:var(--gold)">Syncing…</span>';
+      else if(state.cloudStatus==="error") note.innerHTML='☁ <span style="color:var(--loss)">Offline · device only</span>';
+      else note.innerHTML='☁ <span style="color:var(--profit)">Synced to cloud</span>';
+    } else {
       if(hasCloud()) note.textContent="Saved in Claude";
       else if(LOCAL_OK) note.textContent="Saved on this device";
       else note.textContent="⚠ Not saving — back up manually";
     }
+    refreshCloudPill();
+  }
+
+  // ---------- boot ----------
+  (async function(){
+    await loadAll();
+    render();
+    updateStoreNote();
+    // pull from cloud after first paint (non-blocking)
+    setTimeout(function(){ cloudSyncOnBoot(); }, 100);
   })();
 })();
 </script>
