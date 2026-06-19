@@ -302,6 +302,10 @@
     .equity-readout .val{font-size:18px}
     .gear{margin-left:auto}
 
+    /* iOS auto-zoom fix: inputs must be ≥ 16px on mobile, otherwise Safari zooms in on focus
+       and leaves the viewport scaled when the modal closes, making the page overflow the screen. */
+    .field input,.field select,.field textarea{font-size:16px}
+
     .hero{padding:18px 16px;border-radius:14px}
     .hero-pnl{font-size:34px}
     svg.equity{height:170px}
@@ -1386,6 +1390,8 @@
       document.body.style.right = "";
       document.body.style.width = "";
       window.scrollTo(0, _savedScroll);
+      // iOS fix: blur any focused input so Safari releases the auto-zoom viewport state
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
     }
   }
 
