@@ -281,6 +281,17 @@
   .cloud-body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--border-soft)}
   .cloud-note{font-family:var(--body);font-size:12px;color:var(--muted);line-height:1.5;margin:12px 0 4px}
 
+  .wd-add-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center}
+  .wd-add-row input{font-family:var(--mono);font-size:13px;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 11px;outline:none;transition:border-color .15s;min-width:0}
+  .wd-add-row input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,180,41,.12)}
+  .wd-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;margin-top:4px}
+  .wd-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border-soft);border-radius:9px;font-family:var(--mono);font-size:12.5px}
+  .wd-row .wd-amt{color:var(--loss);font-weight:600;flex:0 0 auto;min-width:70px}
+  .wd-row .wd-date{color:var(--muted-2);font-size:11px;flex:1}
+  .wd-row .wd-del{background:none;border:none;color:var(--muted-2);font-size:14px;cursor:pointer;padding:2px 6px;border-radius:5px;transition:.15s}
+  .wd-row .wd-del:hover{color:var(--loss);background:var(--loss-dim)}
+  .wd-empty{font-family:var(--body);font-size:12px;color:var(--muted-2);text-align:center;padding:12px;font-style:italic}
+
   .form-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
 
   .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12.5px;padding:11px 18px;border-radius:10px;z-index:60;opacity:0;transition:.25s;pointer-events:none}
@@ -304,7 +315,7 @@
 
     /* iOS auto-zoom fix: inputs must be ≥ 16px on mobile, otherwise Safari zooms in on focus
        and leaves the viewport scaled when the modal closes, making the page overflow the screen. */
-    .field input,.field select,.field textarea{font-size:16px}
+    .field input,.field select,.field textarea,.wd-add-row input{font-size:16px}
 
     .hero{padding:18px 16px;border-radius:14px}
     .hero-pnl{font-size:34px}
@@ -554,6 +565,22 @@
         TAPE follows XM's specs: <b style="color:var(--text)">Standard</b> = 100,000 units/lot (~$10/pip per 1.00 lot), <b style="color:var(--text)">Micro</b> = 1,000 units/lot (~$0.10/pip per 1.00 lot). Leverage drives the margin estimate when you log a trade.
       </p>
 
+      <details class="cloud-section" id="wd-section">
+        <summary>
+          <span>💵 Withdrawals</span>
+          <span class="cloud-pill" id="wd-pill">$0.00</span>
+        </summary>
+        <div class="cloud-body">
+          <p class="cloud-note">Money taken out of your trading account. Subtracted from your equity, but doesn't change your % return (which always measures pure trading performance).</p>
+          <div class="wd-add-row">
+            <input id="wd-amount" type="number" step="any" inputmode="decimal" placeholder="Amount $" />
+            <input id="wd-date" type="date" />
+            <button type="button" class="btn-mini" id="wd-add-btn">Add</button>
+          </div>
+          <div class="wd-list" id="wd-list"></div>
+        </div>
+      </details>
+
       <details class="cloud-section" id="cloud-section">
         <summary>
           <span>☁ Cloud sync · Supabase</span>
@@ -592,12 +619,14 @@
   // ---------- State ----------
   var TRADES_KEY = "tape:trades:v1";
   var SETTINGS_KEY = "tape:settings:v1";
+  var WITHDRAWALS_KEY = "tape:withdrawals:v1";
   // XM contract sizes
   var XM_CONTRACT_STANDARD = 100000; // 1 lot = 100,000 units
   var XM_CONTRACT_MICRO    = 1000;   // 1 lot = 1,000 units
   var state = {
     trades:[], filter:"all", editingId:null, dir:"long", profileType:"standard",
     startingBalance:1000, accountType:"standard", leverage:1000, riskPct:1,
+    withdrawals:[],
     cloudUrl:"", cloudKey:"", cloudJournalId:"",
     localUpdatedAt:null, cloudStatus:"off", cloudLastSync:null
   };
@@ -635,8 +664,10 @@
 
   async function loadAll(){
     var t = await storeGet(TRADES_KEY);
+    var w = await storeGet(WITHDRAWALS_KEY);
     var s = await storeGet(SETTINGS_KEY);
     if(t){ try{ state.trades = JSON.parse(t); }catch(e){ state.trades=[]; } }
+    if(w){ try{ state.withdrawals = JSON.parse(w); }catch(e){ state.withdrawals=[]; } }
     if(s){ try{
       var o=JSON.parse(s);
       if(o.startingBalance!=null) state.startingBalance=o.startingBalance;
@@ -652,7 +683,13 @@
   async function saveTrades(){
     state.localUpdatedAt = new Date().toISOString();
     await storeSet(TRADES_KEY, JSON.stringify(state.trades));
-    await saveSettings(); // persist localUpdatedAt
+    await saveSettings();
+    cloudPushDeferred();
+  }
+  async function saveWithdrawals(){
+    state.localUpdatedAt = new Date().toISOString();
+    await storeSet(WITHDRAWALS_KEY, JSON.stringify(state.withdrawals));
+    await saveSettings();
     cloudPushDeferred();
   }
   async function saveSettings(){ await storeSet(SETTINGS_KEY, JSON.stringify({
@@ -697,6 +734,7 @@
         id: state.cloudJournalId,
         data: {
           trades: state.trades,
+          withdrawals: state.withdrawals,
           settings: {
             startingBalance:state.startingBalance, accountType:state.accountType,
             leverage:state.leverage, riskPct:state.riskPct
@@ -733,6 +771,7 @@
     if(cloudTs > localTs){
       var d = row.data || {};
       if(Array.isArray(d.trades)) state.trades = d.trades;
+      if(Array.isArray(d.withdrawals)) state.withdrawals = d.withdrawals;
       if(d.settings){
         var s=d.settings;
         if(s.startingBalance!=null) state.startingBalance=s.startingBalance;
@@ -742,6 +781,7 @@
       }
       state.localUpdatedAt = row.updated_at;
       await storeSet(TRADES_KEY, JSON.stringify(state.trades));
+      await storeSet(WITHDRAWALS_KEY, JSON.stringify(state.withdrawals));
       await saveSettings();
       render();
       toast("Synced "+state.trades.length+" trades from cloud.");
@@ -885,12 +925,15 @@
     var mAll = computeMetrics(all);
 
     // readouts (always whole account)
-    var equityNow = state.startingBalance + mAll.net;
+    var totalWd = state.withdrawals.reduce(function(a,w){ return a + (parseFloat(w.amount)||0); }, 0);
+    var equityNow = state.startingBalance + mAll.net - totalWd;
     var ro = document.getElementById("ro-equity");
     ro.textContent = "$"+equityNow.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
     var roS = document.getElementById("ro-start");
     var typeLabel = state.accountType==="micro" ? "Micro" : "Standard";
-    roS.textContent = "$"+state.startingBalance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+" · "+typeLabel+" · 1:"+state.leverage;
+    var startCap = "$"+state.startingBalance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+" · "+typeLabel+" · 1:"+state.leverage;
+    if(totalWd>0) startCap += " · −$"+totalWd.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+" withdrawn";
+    roS.textContent = startCap;
     var ret = state.startingBalance>0 ? mAll.net/state.startingBalance*100 : 0;
     var roR = document.getElementById("ro-return");
     roR.textContent = (ret>0?"+":"")+ret.toFixed(2)+"%";
@@ -1454,6 +1497,10 @@
     document.getElementById("c-key").value=state.cloudKey||"";
     document.getElementById("c-jid").value=state.cloudJournalId||"";
     document.getElementById("cloud-section").open = cloudConfigured();
+    document.getElementById("wd-section").open = state.withdrawals.length>0;
+    document.getElementById("wd-date").value = new Date().toISOString().slice(0,10);
+    document.getElementById("wd-amount").value = "";
+    renderWithdrawals();
     setProfileType(state.accountType==="micro"?"micro":"standard");
     refreshCloudPill();
     openOverlay(balOverlay);
@@ -1491,6 +1538,56 @@
   document.getElementById("bal-close").onclick=closeBal;
   document.getElementById("bal-cancel").onclick=closeBal;
   document.getElementById("bal-save").onclick=saveBal;
+  // ---------- Withdrawals ----------
+  function totalWithdrawn(){
+    return state.withdrawals.reduce(function(a,w){ return a + (parseFloat(w.amount)||0); }, 0);
+  }
+  function renderWithdrawals(){
+    var box = document.getElementById("wd-list");
+    var pill = document.getElementById("wd-pill");
+    var total = totalWithdrawn();
+    pill.textContent = "$"+total.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+    pill.className = "cloud-pill" + (total>0 ? " error" : ""); // red pill if withdrawals present
+    if(!state.withdrawals.length){
+      box.innerHTML = '<div class="wd-empty">No withdrawals logged yet.</div>';
+      return;
+    }
+    var sorted = state.withdrawals.slice().sort(function(a,b){ return (a.date<b.date)?1:-1; });
+    box.innerHTML = sorted.map(function(w){
+      var amt = parseFloat(w.amount)||0;
+      return '<div class="wd-row">'
+        +'<span class="wd-amt">−$'+amt.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
+        +'<span class="wd-date">'+(w.date||"")+'</span>'
+        +'<button class="wd-del" data-wd="'+w.id+'" title="Delete">×</button>'
+      +'</div>';
+    }).join("");
+    box.querySelectorAll(".wd-del").forEach(function(b){
+      b.onclick = function(){ removeWithdrawal(parseInt(b.getAttribute("data-wd"),10)); };
+    });
+  }
+  async function addWithdrawalFromForm(){
+    var amount = parseFloat(document.getElementById("wd-amount").value);
+    var date = document.getElementById("wd-date").value || new Date().toISOString().slice(0,10);
+    if(isNaN(amount) || amount<=0){ toast("Enter an amount greater than 0."); return; }
+    state.withdrawals.push({ id: Date.now()+Math.floor(Math.random()*1000), amount:amount, date:date });
+    await saveWithdrawals();
+    document.getElementById("wd-amount").value = "";
+    renderWithdrawals();
+    render(); // refresh equity readout
+    toast("Withdrawal logged.");
+  }
+  async function removeWithdrawal(id){
+    state.withdrawals = state.withdrawals.filter(function(w){ return w.id!==id; });
+    await saveWithdrawals();
+    renderWithdrawals();
+    render();
+    toast("Withdrawal removed.");
+  }
+  document.getElementById("wd-add-btn").onclick = addWithdrawalFromForm;
+  document.getElementById("wd-amount").addEventListener("keydown", function(e){
+    if(e.key==="Enter") addWithdrawalFromForm();
+  });
+
   document.getElementById("c-test").onclick=async function(){
     // read draft values from the form for the test (don't require save first)
     var u=document.getElementById("c-url").value.trim();
@@ -1552,20 +1649,23 @@
     toast("CSV exported.");
   }
   async function resetJournal(){
-    if(!state.trades.length){ toast("Journal is already empty."); return; }
-    if(!confirm("Clear all "+state.trades.length+" logged trades? This can't be undone.")) return;
-    state.trades=[]; state.filter="all";
+    var n = state.trades.length, w = state.withdrawals.length;
+    if(!n && !w){ toast("Journal is already empty."); return; }
+    if(!confirm("Clear all "+n+" trades and "+w+" withdrawals? This can't be undone.")) return;
+    state.trades=[]; state.withdrawals=[]; state.filter="all";
     await saveTrades();
+    await saveWithdrawals();
     render();
     toast("Journal cleared.");
   }
 
   // Full backup as JSON — keep this file safe and you can never lose your journal
   function backupJSON(){
-    if(!state.trades.length){ toast("Nothing to back up yet."); return; }
-    var payload={ app:"TAPE", version:3, exportedAt:new Date().toISOString(),
+    if(!state.trades.length && !state.withdrawals.length){ toast("Nothing to back up yet."); return; }
+    var payload={ app:"TAPE", version:4, exportedAt:new Date().toISOString(),
       startingBalance:state.startingBalance, accountType:state.accountType,
-      leverage:state.leverage, riskPct:state.riskPct, trades:state.trades };
+      leverage:state.leverage, riskPct:state.riskPct,
+      trades:state.trades, withdrawals:state.withdrawals };
     var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     var url=URL.createObjectURL(blob);
     var a=document.createElement("a");
@@ -1586,15 +1686,22 @@
           if(t.id==null) t.id=Date.now()+i;
           return t;
         });
+        if(Array.isArray(data.withdrawals)){
+          state.withdrawals = data.withdrawals.map(function(w,i){
+            if(w.id==null) w.id=Date.now()+1000+i;
+            return w;
+          });
+        }
         if(data.startingBalance!=null) state.startingBalance=data.startingBalance;
         if(data.accountType) state.accountType=(data.accountType==="cent"?"micro":data.accountType);
         if(data.leverage!=null) state.leverage=data.leverage;
         if(data.riskPct!=null) state.riskPct=data.riskPct;
         state.filter="all";
         await saveTrades();
+        await saveWithdrawals();
         await saveSettings();
         render();
-        toast("Restored "+state.trades.length+" trades.");
+        toast("Restored "+state.trades.length+" trades, "+state.withdrawals.length+" withdrawals.");
       }catch(e){ toast("Couldn't read that backup file."); }
     };
     reader.readAsText(file);
